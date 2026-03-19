@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <script type="module">
+  // Importation des modules Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+  // TA CONFIGURATION (Celle copiée à l'étape 1)
+  const firebaseConfig = {
+    apiKey: "AIzaSyCE6wo7cnfFunpDHe6DhgrrZbyKpzFTT4o",
+    authDomain: "akoikisert.firebaseapp.com",
+    projectId: "akoikisert",
+    storageBucket: "akoikisert.firebasestorage.app",
+    messagingSenderId: "525170230356",
+    appId: "1:525170230356:web:43cb39eb269399a031d9c1",
+  };
+
+  // Initialisation
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Fonction pour envoyer l'idée
+  window.submitInvention = async function() {
+    const textInput = document.querySelector('#screen-game-medium textarea');
+    const idea = textInput.value.trim();
+
+    if(idea === "") return alert("Écris quelque chose !");
+
+    try {
+      // ON ENVOIE DANS LA COLLECTION "inventions"
+      await addDoc(collection(db, "inventions"), {
+        text: idea,
+        object: "Le Gazomètre", // Tu pourras changer ça selon le QR Code
+        votes: 0,
+        createdAt: serverTimestamp()
+      });
+      showScreen('screen-medium-choice');
+    } catch (e) {
+      console.error("Erreur : ", e);
+    }
+  }
+</script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Musée Zinzin - Second Souffle</title>
+    <!-- Police très ronde, rebondie et fun -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CSS : Design LOUFOQUE / POP-ART --- */
+        :root {
+            --bg-body: #9b5de5; /* Violet flashy */
+            --bg-app: #fee440;  /* Jaune éclatant */
+            --border-dark: #111111; /* Noir absolu pour le côté BD */
+            
+            --color-pink: #f15bb5;
+            --color-blue: #00bbf9;
+            --color-green: #00f5d4;
+            --color-white: #ffffff;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: var(--bg-body);
+            background-image: radial-gradient(#ffffff 2px, transparent 2px);
+            background-size: 30px 30px; /* Fond à pois façon Pop-Art */
+            color: var(--border-dark);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #app-container {
+            width: 100%; max-width: 480px; min-height: 100vh;
+            background: var(--bg-app);
+            border: 6px solid var(--border-dark);
+            box-sizing: border-box;
+            position: relative;
+            box-shadow: 15px 15px 0px rgba(0,0,0,0.2);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* En-tête asymétrique */
+        header {
+            background: var(--color-pink);
+            padding: 20px; text-align: center;
+            border-bottom: 6px solid var(--border-dark);
+            position: relative;
+        }
+
+        header h1 {
+            margin: 0; font-size: 1.5rem; font-weight: 700;
+            color: var(--color-white);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 3px 3px 0px var(--border-dark);
+            transform: rotate(-2deg); /* Un peu de travers */
+        }
+
+        .progress-indicator {
+            position: absolute; top: -15px; right: 10px;
+            background: var(--color-white);
+            border: 3px solid var(--border-dark);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            transform: rotate(5deg);
+        }
+
+        .screen {
+            display: none; padding: 30px 20px;
+            flex-direction: column; align-items: center; text-align: center;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animation qui rebondit */
+        }
+
+        .screen.active { display: flex; }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.8) translateY(30px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        h2 { 
+            font-size: 1.5rem; color: var(--border-dark);
+            background: var(--color-white); padding: 10px 20px; 
+            border: 4px solid var(--border-dark);
+            border-radius: 30px;
+            box-shadow: 4px 4px 0px var(--border-dark);
+            margin-bottom: 20px;
+            transform: rotate(1deg);
+        }
+
+        p { line-height: 1.5; font-size: 1.1rem; margin-bottom: 25px; font-weight: 600;}
+
+        /* --- Boutons Cartoon --- */
+        .btn {
+            width: 100%; padding: 15px; margin-bottom: 15px;
+            border: 4px solid var(--border-dark); 
+            border-radius: 15px;
+            font-family: 'Fredoka', sans-serif; font-weight: 700;
+            font-size: 1.1rem; cursor: pointer;
+            position: relative;
+            background: var(--color-white);
+            box-shadow: 5px 5px 0px var(--border-dark); 
+            transition: all 0.1s;
+        }
+
+        .btn:active { 
+            transform: translate(5px, 5px); 
+            box-shadow: 0px 0px 0px var(--border-dark); 
+        }
+
+        /* Couleurs fun pour les boutons */
+        .btn-calm { background: var(--color-green); }
+        .btn-medium { background: var(--color-blue); color: white;}
+        .btn-dynamic { background: var(--color-pink); color: white; }
+
+        /* Champ de texte */
+        textarea {
+            width: 100%; height: 120px; background: #fff; 
+            border: 4px solid var(--border-dark); border-radius: 15px;
+            font-family: 'Fredoka', sans-serif; font-size: 1rem; font-weight: 600;
+            padding: 15px; box-sizing: border-box;
+            margin-bottom: 20px; box-shadow: inset 4px 4px 0px rgba(0,0,0,0.05);
+            resize: none;
+        }
+
+        textarea:focus { outline: none; border-color: var(--color-pink); }
+
+        /* Le hublot devient un "Blob" (Forme organique animée) */
+        .object-img {
+            width: 130px; height: 130px; 
+            border: 5px solid var(--border-dark); 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3.5rem; background: var(--color-white); margin-bottom: 25px;
+            box-shadow: 6px 6px 0px var(--border-dark);
+            animation: morph 3s ease-in-out infinite; /* Le blob bouge tout seul ! */
+        }
+
+        @keyframes morph {
+            0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+            34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; }
+            67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; }
+            100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+        }
+
+        /* Boîte de statistiques façon Bulle de BD */
+        .stats-box {
+            background: var(--color-white); 
+            border: 4px solid var(--border-dark); 
+            border-radius: 20px;
+            padding: 15px; text-align: left;
+            font-size: 1rem; font-weight: 600;
+            display: none; margin-bottom: 20px; width: 100%; box-sizing: border-box;
+            position: relative;
+        }
+        
+        /* Petite queue de bulle de BD */
+        .stats-box::after {
+            content: ''; position: absolute; top: -15px; left: 30px;
+            border-width: 0 15px 15px 0;
+            border-style: solid;
+            border-color: transparent var(--border-dark) transparent transparent;
+            display: block; width: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <header>
+            <h1>La Machine à Réveiller ⚡</h1>
+            <div id="progress-text" class="progress-indicator" style="display:none;"></div>
+        </header>
+
+        <!-- ECRAN 1 : ACCUEIL -->
+        <div id="screen-welcome" class="screen active">
+            <div class="object-img">🥱</div>
+            <h2>Alerte Mollesse !</h2>
+            <p>Le musée a pompé toute votre énergie ? Pas de panique, choisissez votre remède anti-sieste :</p>
+            
+            <button class="btn btn-calm" onclick="startGame('low')">🐌 Mode Limace (Je reste assis)</button>
+            <button class="btn btn-medium" onclick="startGame('medium')">🐒 Mode Singe (Curieux mais pas trop)</button>
+            <button class="btn btn-dynamic" onclick="startGame('high')">🌪️ Mode Tornade (Faut que ça bouge !)</button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ECRAN MANUEL OPERATOIRE (UNIQUEMENT POUR MODE MOYEN) -->
+        <div id="screen-manual-medium" class="screen">
+            <div class="object-img">🕵️‍♀️</div>
+            <h2>Mission Top Secrète</h2>
+            <p>Votre cerveau a besoin d'un petit massage. Voici votre mission si vous l'acceptez :</p>
+            
+            <div style="text-align: left; background: var(--color-white); border: 3px solid var(--border-dark); padding: 15px; border-radius: 15px; margin-bottom: 25px; box-shadow: 4px 4px 0px rgba(0,0,0,0.1);">
+                <ol style="line-height: 1.6; margin: 0; padding-left: 20px;">
+                    <li>Levez-vous (doucement).</li>
+                    <li>Cherchez un objet bizarre <strong>entouré d'un cadre métallique</strong> dans les vitrines.</li>
+                    <li>Flashez le <strong>Code QR</strong> juste à côté !</li>
+                </ol>
+            </div>
+            
+            <button class="btn btn-dynamic" onclick="showScreen('screen-game-medium')">Bzzzt ! Scanner le Code 📸</button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- CARTES JEU TRANQUILLE (PRESSION BASSE) x 4 -->
+        <div id="screen-game-low-1" class="screen">
+            <div class="object-img">⚗️</div>
+            <h2>Le Quiz de Canapé (1/4)</h2>
+            <p>Regardez cet énorme Gazomètre. À votre avis, à quoi pouvait bien servir cet engin ?</p>
+            <button class="btn" onclick="showLowStats(this, false, 'screen-game-low-2', 'stat-1')">A. À laver les chaussettes des savants</button>
+            <button class="btn" onclick="showLowStats(this, true, 'screen-game-low-2', 'stat-1')">B. À mesurer des gaz hyper précisément</button>
+            <button class="btn" onclick="showLowStats(this, false, 'screen-game-low-2', 'stat-1')">C. C'est une machine à faire de la bière</button>
+
+            <div id="stat-1" class="stats-box">
+                <strong class="stats-title"></strong><br>Psst... 60% des visiteurs ont aussi cru à la machine à laver !
+                <button class="btn btn-medium" style="margin-top:15px" onclick="nextCard('screen-game-low-2')">Question Suivante ! 🚀</button>
+            </div>
+        </div>
+
+        <div id="screen-game-low-2" class="screen">
+            <div class="object-img">🧊</div>
+            <h2>Le Quiz de Canapé (2/4)</h2>
+            <p>Voici le "Calorimètre à glace". Pour mesurer la chaleur d'un petit animal à l'intérieur, que mettait-on dans les parois ?</p>
+            <button class="btn" onclick="showLowStats(this, false, 'screen-game-low-3', 'stat-2')">A. Du charbon brûlant (pauvre bête)</button>
+            <button class="btn" onclick="showLowStats(this, true, 'screen-game-low-3', 'stat-2')">B. De la glace pilée</button>
+            <button class="btn" onclick="showLowStats(this, false, 'screen-game-low-3', 'stat-2')">C. De la litière pour chat</button>
+
+            <div id="stat-2" class="stats-box">
+                <strong class="stats-title"></strong><br>Bingo ! Lavoisier regardait quelle quantité de glace fondait pour mesurer la chaleur !
+                <button class="btn btn-medium" style="margin-top:15px" onclick="nextCard('screen-game-low-3')">Encore un effort ! 🚀</button>
+            </div>
+        </div>
+
+        <div id="screen-game-low-3" class="screen">
+            <div class="object-img">🔍</div>
+            <h2>Le Quiz de Canapé (3/4)</h2>
+            <p>Cette loupe géante a permis à l'équipe de Lavoisier de faire fondre un objet ultra dur. Lequel ?</p>
+            <button class="btn" onclick="showLowStats(this, true, 'screen-game-low-4', 'stat-3')">A. Un vrai diamant 💎</button>
+            <button class="btn" onclick="showLowStats(this, false, 'screen-game-low-4', 'stat-3')">B. Un boulet de canon 💣</button>
+            <button class="btn" onclick="showLowStats(this, false, 'screen-game-low-4', 'stat-3')">C. La montre du Roi ⌚</button>
+
+            <div id="stat-3" class="stats-box">
+                <strong class="stats-title"></strong><br>Dingue non ? Sous cette chaleur extrême, le diamant brûle et se transforme en gaz !
+                <button class="btn btn-medium" style="margin-top:15px" onclick="nextCard('screen-game-low-4')">Le Boss Final ➡️</button>
+            </div>
+        </div>
+
+        <div id="screen-game-low-4" class="screen">
+            <div class="object-img">🗜️</div>
+            <h2>Le Quiz de Canapé (4/4)</h2>
+            <p>On place une bougie allumée sous cette cloche en verre et on aspire tout l'air. Que se passe-t-il ?</p>
+            <button class="btn" onclick="showLowStats(this, false, 'screen-resolution', 'stat-4')">A. La flamme devient bleue fluo</button>
+            <button class="btn" onclick="showLowStats(this, true, 'screen-resolution', 'stat-4')">B. La bougie s'éteint direct</button>
+            <button class="btn" onclick="showLowStats(this, false, 'screen-resolution', 'stat-4')">C. La cire explose partout</button>
+
+            <div id="stat-4" class="stats-box">
+                <strong class="stats-title"></strong><br>Exact ! Sans air (et donc sans oxygène), le feu ne peut pas vivre.
+                <button class="btn btn-dynamic" style="margin-top:15px" onclick="showResolution()">J'ai fini ! 🎉</button>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ECRAN 2B : JEU STANDARD (INVENTION) -->
+        <div id="screen-game-medium" class="screen">
+            <div class="object-img" style="font-size: 2rem;">💡</div>
+            <h2>L'Atelier des Zinzins</h2>
+            <p>Imaginez que cet objet soit vendu sur le Télé-Achat demain à 6h du matin. À quoi pourrait-il bien servir ?</p>
+            <textarea placeholder="Ex: 'Le super Débouche-Toilettes 3000, idéal pour les gros bouchons !' Lâchez-vous !"></textarea>
+            <button class="btn btn-dynamic" onclick="submitInvention()">Envoyer mon idée de génie 🚀</button>
+        </div>
+
+        <!-- NOUVEL ECRAN : CHOIX APRÈS INVENTION (BOUCLE) -->
+        <div id="screen-medium-choice" class="screen">
+            <div class="object-img">📬</div>
+            <h2>Idée Envoyée !</h2>
+            <p>Votre invention géniale vient d'être propulsée vers la borne centrale du musée !</p>
+            <p>On s'arrête là, ou on cherche une nouvelle victime (un autre objet) ?</p>
+            
+            <button class="btn btn-calm" onclick="showScreen('screen-manual-medium')">🔎 Je cherche un autre code !</button>
+            <button class="btn btn-dynamic" onclick="showResolution()">🛑 C'est bon, stop pour moi.</button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ECRAN 2C : JEU DYNAMIQUE (MIME) -->
+        <div id="screen-game-high" class="screen">
+            <div class="object-img">🕺</div>
+            <h2>L'Instant Gênant</h2>
+            <p>Face à la personne qui vous accompagne, vous avez 10 secondes pour mimer le bruit et le mouvement du gaz sous pression dans cette machine !</p>
+            <p style="font-size: 1.5rem; font-weight: 700; color: var(--color-pink);">PSSSHHHT... BLOUB ! 💨</p>
+            <button class="btn btn-dynamic" style="margin-top:20px;" onclick="showResolution()">C'est fait (ils ont rigolé) !</button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- ECRAN 3 : RÉSOLUTION FINALE -->
+        <div id="screen-resolution" class="screen">
+            <h2>La Minute Intello 🤓</h2>
+            <p>Allez, un peu de sérieux : ces drôles d'instruments (1789) permettaient à Antoine Lavoisier de peser et mesurer la matière avec une précision de malade !</p>
+            <p>C'est grâce à ça qu'on sait que <em>"Rien ne se perd, rien ne se crée, tout se transforme !"</em></p>
+            <button class="btn btn-medium" onclick="showExit()">Ok, je repars ! 🚶‍♂️</button>
+        </div>
+
+        <!-- ECRAN 4 : SORTIE ET BORNE -->
+        <div id="screen-exit" class="screen">
+            <h2>Fin du Délire !</h2>
+            <p>Allez voir la <strong>Borne Interactive</strong> au milieu de la salle.</p>
+            <p>Vous pourrez y lire les pires bêtises laissées par les autres visiteurs et voter pour votre préférée !</p>
+            <button class="btn" style="margin-top:20px;" onclick="resetApp()">🔄 Recommencer depuis le début</button>
+        </div>
+    </div>
+
+    <!-- --- JAVASCRIPT --- -->
+    <script>
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            const progressIndicator = document.getElementById('progress-text');
+            if(screenId.includes('low-1')) { progressIndicator.innerText = "1/4"; progressIndicator.style.display = "block"; }
+            else if(screenId.includes('low-2')) { progressIndicator.innerText = "2/4"; progressIndicator.style.display = "block"; }
+            else if(screenId.includes('low-3')) { progressIndicator.innerText = "3/4"; progressIndicator.style.display = "block"; }
+            else if(screenId.includes('low-4')) { progressIndicator.innerText = "4/4"; progressIndicator.style.display = "block"; }
+            else { progressIndicator.style.display = "none"; }
+
+            window.scrollTo(0,0);
+        }
+
+        function startGame(level) {
+            if (level === 'low') showScreen('screen-game-low-1');
+            else if (level === 'medium') showScreen('screen-manual-medium');
+            else if (level === 'high') showScreen('screen-game-high');
+        }
+
+        function showLowStats(btnClicked, isCorrect, nextScreenId, statBoxId) {
+            const currentScreen = btnClicked.closest('.screen');
+            const statBox = document.getElementById(statBoxId);
+            const title = statBox.querySelector('.stats-title');
+
+            currentScreen.querySelectorAll('.btn').forEach(b => {
+                b.style.opacity = '0.5';
+                b.style.transform = 'none';
+                b.style.pointerEvents = 'none'; 
+            });
+            
+            btnClicked.style.opacity = '1';
+            btnClicked.style.background = isCorrect ? 'var(--color-green)' : 'var(--color-pink)'; 
+            btnClicked.style.color = '#111';
+
+            title.innerText = isCorrect ? "YAAAAS ! 🎯" : "OUPS, RATÉ ! 🤡";
+            statBox.style.display = 'block';
+
+            const nextButton = statBox.querySelector('.btn');
+            if(nextButton) {
+                nextButton.style.pointerEvents = 'auto'; 
+                nextButton.style.opacity = '1';          
+            }
+        }
+
+        function nextCard(nextScreenId) {
+            showScreen(nextScreenId);
+        }
+
+        function submitInvention() {
+            const textarea = document.querySelector('#screen-game-medium textarea');
+            if(textarea.value.trim() === '') {
+                alert("Hé ! Vous n'avez rien écrit du tout ! Allez, un petit effort d'imagination !"); 
+                return;
+            }
+            textarea.value = '';
+            showScreen('screen-medium-choice');
+        }
+
+        function showResolution() { showScreen('screen-resolution'); }
+        function showExit() { showScreen('screen-exit'); }
+        function resetApp() { location.reload(); } 
+    </script>
+</body>
+</html>

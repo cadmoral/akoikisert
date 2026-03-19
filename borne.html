@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fr">
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+  import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+  const firebaseConfig = { 
+        apiKey: "AIzaSyCE6wo7cnfFunpDHe6DhgrrZbyKpzFTT4o",
+    authDomain: "akoikisert.firebaseapp.com",
+    projectId: "akoikisert",
+    storageBucket: "akoikisert.firebasestorage.app",
+    messagingSenderId: "525170230356",
+    appId: "1:525170230356:web:43cb39eb269399a031d9c1",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const container = document.getElementById('wall-container');
+
+  // 1. ÉCOUTER LA BASE DE DONNÉES EN TEMPS RÉEL
+  const q = query(collection(db, "inventions"), orderBy("votes", "desc"));
+  
+  onSnapshot(q, (snapshot) => {
+    container.innerHTML = ''; // On vide le mur
+    snapshot.forEach((doc) => {
+        const item = doc.data();
+        const id = doc.id;
+        
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <div class="card-header">L'objet : ${item.object}</div>
+            <div class="card-text">"${item.text}"</div>
+            <div class="vote-area">
+                <span class="vote-count">❤️ ${item.votes}</span>
+                <button class="vote-btn" onclick="voteFor('${id}')">C'EST GÉNIAL !</button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+  });
+
+  // 2. FONCTION DE VOTE (Met à jour Firebase)
+  window.voteFor = async function(docId) {
+    const docRef = doc(db, "inventions", docId);
+    await updateDoc(docRef, {
+        votes: increment(1)
+    });
+  };
+</script>
+<head>
+    <meta charset="UTF-8">
+    <title>BORNE : Le Mur des Zinzins 💡</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #9b5de5;    /* Violet flashy */
+            --bg-card: #fee440;    /* Jaune éclatant */
+            --border-dark: #111;   /* Noir BD */
+            --color-pink: #f15bb5;
+            --color-blue: #00bbf9;
+            --color-green: #00f5d4;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: var(--bg-body);
+            background-image: radial-gradient(#ffffff 3px, transparent 3px);
+            background-size: 40px 40px; /* Gros pois Pop-Art */
+            margin: 0; padding: 50px;
+            color: var(--border-dark);
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center; margin-bottom: 60px;
+        }
+
+        h1 {
+            display: inline-block;
+            background: var(--color-pink);
+            color: white;
+            padding: 20px 50px;
+            font-size: 3.5rem;
+            border: 8px solid var(--border-dark);
+            box-shadow: 15px 15px 0px var(--border-dark);
+            transform: rotate(-2deg);
+            text-shadow: 4px 4px 0px var(--border-dark);
+            text-transform: uppercase;
+        }
+
+        /* Grille des inventions */
+        .wall {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 40px;
+            padding: 20px;
+        }
+
+        /* Carte d'invention façon Bulle de BD */
+        .card {
+            background: var(--bg-card);
+            border: 6px solid var(--border-dark);
+            padding: 30px;
+            position: relative;
+            box-shadow: 12px 12px 0px var(--border-dark);
+            transition: all 0.2s ease;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5) rotate(5deg); opacity: 0; }
+            to { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .card:nth-child(even) { transform: rotate(1.5deg); background: var(--color-white, #fff); }
+        .card:nth-child(odd) { transform: rotate(-1.5deg); }
+
+        .card-header {
+            font-weight: 700; font-size: 1.1rem;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            color: var(--color-blue);
+            border-bottom: 4px solid var(--border-dark);
+            padding-bottom: 10px;
+        }
+
+        .card-text {
+            font-size: 1.5rem; line-height: 1.3;
+            font-weight: 600; margin-bottom: 25px;
+            word-wrap: break-word;
+        }
+
+        /* Section Vote */
+        .vote-area {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .vote-count {
+            background: var(--border-dark);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .vote-btn {
+            background: var(--color-green);
+            border: 4px solid var(--border-dark);
+            padding: 10px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: 'Fredoka'; font-weight: 700; font-size: 1.1rem;
+            box-shadow: 4px 4px 0px var(--border-dark);
+        }
+
+        .vote-btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px var(--border-dark);
+        }
+
+        /* Badge "Nouveau" */
+        .badge {
+            position: absolute; top: -20px; right: -20px;
+            background: var(--color-pink); color: white;
+            padding: 10px; border: 4px solid var(--border-dark);
+            font-weight: 800; transform: rotate(15deg);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Le Mur des Zinzins 💡</h1>
+    </header>
+
+    <div class="wall" id="wall-container">
+        <!-- Les cartes s'affichent ici -->
+    </div>
+
+    <script>
+        // Simulation de données reçues de l'application mobile
+        let submissions = [
+            { id: 1, obj: "Le Gazomètre", text: "Une machine à fabriquer des nuages à barbe à papa !", votes: 24, isNew: false },
+            { id: 2, obj: "Calorimètre", text: "Un frigo magique qui transforme la soupe en glace au chocolat.", votes: 12, isNew: true },
+            { id: 3, obj: "Grande Loupe", text: "Un viseur pour espionner les fourmis sur Mars.", votes: 45, isNew: false }
+        ];
+
+        const container = document.getElementById('wall-container');
+
+        function renderWall() {
+            container.innerHTML = '';
+            // On trie par votes
+            submissions.sort((a,b) => b.votes - a.votes).forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    ${item.isNew ? '<div class="badge">NOUVEAU !</div>' : ''}
+                    <div class="card-header">L'objet : ${item.obj}</div>
+                    <div class="card-text">"${item.text}"</div>
+                    <div class="vote-area">
+                        <span class="vote-count">❤️ ${item.votes}</span>
+                        <button class="vote-btn" onclick="vote(${item.id})">C'EST GÉNIAL !</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function vote(id) {
+            const item = submissions.find(s => s.id === id);
+            item.votes++;
+            renderWall();
+        }
+
+        // Initialisation
+        renderWall();
+
+        // Simulation d'une nouvelle idée qui arrive toutes les 10 secondes
+        setInterval(() => {
+            const extraIdeas = ["Un chapeau pour robots", "Un mixeur à idées", "Un aspirateur de fantômes"];
+            const newIdea = {
+                id: Date.now(),
+                obj: "Objet Inconnu",
+                text: extraIdeas[Math.floor(Math.random() * extraIdeas.length)],
+                votes: 0,
+                isNew: true
+            };
+            submissions.push(newIdea);
+            renderWall();
+        }, 15000);
+    </script>
+</body>
+</html>
